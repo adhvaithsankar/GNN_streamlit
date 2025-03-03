@@ -4,6 +4,12 @@ Main application for Trade Opportunity Prediction System
 
 import streamlit as st
 import pandas as pd
+import google.generativeai as genai
+from langchain_google_genai import GoogleGenerativeAI
+from langchain_experimental.agents import create_csv_agent
+
+import streamlit as st
+import pandas as pd
 import numpy as np
 import os
 import torch
@@ -46,7 +52,7 @@ trading partners and underutilized trade opportunities.
 st.sidebar.title("Navigation")
 app_mode = st.sidebar.selectbox(
     "Choose the app mode",
-    ["Introduction", "Data Exploration", "Model Training", "Opportunity Finder", "Underutilized Trade", "About"]
+    ["Introduction", "Data Exploration", "Model Training", "Opportunity Finder", "Underutilized Trade","Chat Bot","About"]
 )
 
 @st.cache_resource
@@ -625,3 +631,45 @@ elif app_mode == "Underutilized Trade":
             except Exception as e:
                 st.error(f"Error finding underutilized trade relationships: {str(e)}")
 
+elif app_mode == "Chat Bot":
+    GEMINI_API_KEY = "AIzaSyAYwuXFkdob0ORytDc_Qaa8Vwu3_-ZK5Pg"
+    genai.configure(api_key=GEMINI_API_KEY)
+
+    # Initialize LLM
+    llm = GoogleGenerativeAI(model="gemini-1.5-flash", api_key=GEMINI_API_KEY)
+
+    # Load CSV
+    csv_file_path = "./data/edge_data_hs_code_2018.csv"
+
+    # Create agent for querying CSV
+    agent = create_csv_agent(llm, csv_file_path, verbose=True, allow_dangerous_code=True)
+
+    # Streamlit UI
+    st.title("📊 Trade Data Chatbot")
+
+    # Initialize session state for chat history
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    # Display chat history
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
+    # User input
+    question = st.chat_input("Ask about trade data...")
+
+    if question:
+        # Display user message
+        st.session_state.messages.append({"role": "user", "content": question})
+        with st.chat_message("user"):
+            st.markdown(question)
+
+        # Get the answer from the agent
+        with st.spinner("Thinking..."):
+            answer = agent.run(question)
+
+        # Display assistant message
+        st.session_state.messages.append({"role": "assistant", "content": answer})
+        with st.chat_message("assistant"):
+            st.markdown(answer)
