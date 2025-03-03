@@ -1,13 +1,14 @@
 """
 Main application for Trade Opportunity Prediction System
 """
-
+# Chat bot
 import streamlit as st
 import pandas as pd
 import google.generativeai as genai
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_experimental.agents import create_csv_agent
 
+# Streamlit
 import streamlit as st
 import pandas as pd
 import numpy as np
