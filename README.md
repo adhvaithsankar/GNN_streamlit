@@ -1,1 +1,2 @@
-# RAG_GNN
+# GNN_streamlit
+
